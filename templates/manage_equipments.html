@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}مدیریت تجهیزات{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">مدیریت تجهیزات</h2>
+
+<!-- Toast پیام‌ها -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+      {% for category, message in messages %}
+        <div class="toast show bg-{{ 'success' if category == 'success' else 'danger' }} text-white" role="alert">
+          <div class="toast-body">{{ message }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<form method="post" class="border rounded p-3 bg-light mb-4" id="equipment-form">
+  <input type="hidden" name="equipment_id" id="equipment_id">
+  <div class="row g-2 small">
+    <div class="col-md-2">
+      <label>کد شناسایی</label>
+      <input type="text" name="tag_number" id="tag_number" class="form-control form-control-sm border-primary" readonly required>
+    </div>
+    <div class="col-md-2">
+      <label>نام تجهیز</label>
+      <input type="text" name="name" id="name" class="form-control form-control-sm border-primary" required>
+    </div>
+    <div class="col-md-2">
+      <label>مدل</label>
+      <input type="text" name="model" id="model" class="form-control form-control-sm border-primary">
+    </div>
+    <div class="col-md-2">
+      <label>دسته‌بندی</label>
+      <input type="text" name="category" id="category" class="form-control form-control-sm border-primary">
+    </div>
+    <div class="col-md-2">
+      <label>مشخصات فنی</label>
+      <input type="text" name="specs" id="specs" class="form-control form-control-sm border-primary">
+    </div>
+    <div class="col-md-2">
+      <label>تاریخ نصب</label>
+      <input type="text" name="install_date" id="install_date" class="form-control form-control-sm border-primary">
+    </div>
+    <div class="col-md-12 text-end mt-2">
+      <button type="submit" class="btn btn-sm btn-primary">ذخیره</button>
+    </div>
+  </div>
+</form>
+
+<table class="table table-bordered table-sm align-middle text-center">
+  <thead class="table-info">
+    <tr>
+      <th style="width: 10%;">کد شناسایی</th>
+      <th style="width: 25%;">نام تجهیز</th>
+      <th style="width: 10%;">مدل</th>
+      <th style="width: 10%;">دسته‌بندی</th>
+      <th style="width: 25%;">مشخصات فنی</th>
+      <th style="width: 10%;">تاریخ نصب</th>
+      <th style="width: 10%;">عملیات</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for eq in equipments %}
+    <tr>
+      <td>{{ eq.tag_number }}</td>
+      <td>{{ eq.name }}</td>
+      <td>{{ eq.model }}</td>
+      <td>{{ eq.category }}</td>
+      <td>{{ eq.specs }}</td>
+      <td>{{ eq.install_date or '-' }}</td>
+      <td>
+        <div class="d-flex justify-content-center gap-1">
+          <button class="btn btn-sm btn-primary btn-edit"
+                  style="padding: 2px 4px; font-size: 0.7rem;"
+                  data-id="{{ eq.id }}"
+                  data-tag="{{ eq.tag_number }}"
+                  data-name="{{ eq.name }}"
+                  data-model="{{ eq.model }}"
+                  data-category="{{ eq.category }}"
+                  data-specs="{{ eq.specs }}"
+                  data-install="{{ eq.install_date or '' }}">
+            ✏️
+          </button>
+          <form method="post" action="{{ url_for('delete_equipment', equipment_id=eq.id) }}" onsubmit="return confirm('حذف شود؟')">
+            <button class="btn btn-sm btn-danger" style="padding: 4px 5px; font-size: 0.7rem;">🗑️</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<!-- jQuery آفلاین -->
+<script src="{{ url_for('static', filename='vendor/persian-datepicker/jquery/jquery-3.6.0.min.js') }}"></script>
+
+<!-- Persian Datepicker -->
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/persian-datepicker/css/persian-datepicker.min.css') }}">
+<script src="{{ url_for('static', filename='vendor/persian-datepicker/js/persian-date.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/persian-datepicker/js/persian-datepicker.min.js') }}"></script>
+
+<script>
+$(document).ready(function () {
+  // ================= تولید خودکار کد تجهیز =================
+  function generateEquipmentCode() {
+    // در حالت ویرایش، کد قبلی را حفظ می‌کنیم
+    if ($('#equipment_id').val()) return $('#tag_number').val();
+    
+    const prefix = 'EQ-';
+    let lastNumber = 1000; // مقدار پیش‌فرض
+    
+    // بررسی آخرین کد در دیتابیس
+    {% if equipments and equipments|length > 0 %}
+      const lastCode = '{{ equipments[0].tag_number }}';
+      if (lastCode?.startsWith(prefix)) {
+        const num = parseInt(lastCode.split('-')[1]);
+        if (!isNaN(num)) lastNumber = num + 1;
+      }
+    {% endif %}
+    
+    return prefix + lastNumber.toString().padStart(4, '0');
+  }
+
+  // ================= مدیریت تاریخ =================
+  function initDatePicker() {
+    $("#install_date").persianDatepicker({
+      format: 'YYYY/MM/DD',
+      autoClose: true,
+      calendar: { persian: { locale: 'fa' } }
+    });
+
+    // فقط برای فرم جدید: تاریخ امروز
+    if (!$('#equipment_id').val()) {
+      const today = new persianDate();
+      $("#install_date").val(today.format('YYYY/MM/DD'));
+      $("#install_date").persianDatepicker('setDate', today);
+    }
+  }
+
+  // ================= رویداد ویرایش =================
+  function setupEditHandler() {
+    $('.btn-edit').on('click', function () {
+      const data = $(this).data();
+      
+      // پر کردن فرم
+      $('#equipment_id').val(data.id);
+      $('#tag_number').val(data.tag);
+      $('#name').val(data.name);
+      $('#model').val(data.model);
+      $('#category').val(data.category);
+      $('#specs').val(data.specs);
+      
+      // مدیریت تاریخ
+      if (data.install) {
+        const engDate = data.install.replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1728);
+        const parts = engDate.split('/');
+        if (parts.length === 3) {
+          const pd = new persianDate(parts.map(Number));
+          $("#install_date").val(pd.format('YYYY/MM/DD'));
+          $("#install_date").persianDatepicker('setDate', pd);
+        }
+      } else {
+        $("#install_date").val('').persianDatepicker('setDate', null);
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // ================= اجرای اصلی =================
+  $('#tag_number').val(generateEquipmentCode());
+  initDatePicker();
+  setupEditHandler();
+});
+</script>
+
+{% endblock %}

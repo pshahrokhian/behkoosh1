@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}پنل مدیریت{% endblock %}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.rtl.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="menu-item-with-submenu {{ 'active' if active_page in ['dashboard', 'daily_report', 'monthly_report'] else '' }}">
+    <a href="javascript:void(0);">
+      داشبورد
+      <span class="submenu-toggle">&#9662;</span>
+    </a>
+    <div class="submenu {% if active_page in ['dashboard', 'daily_report', 'monthly_report'] %}open{% endif %}">
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' else '' }}">صفحه اصلی</a>
+      <a href="{{ url_for('daily_report') }}" class="{{ 'active' if active_page == 'daily_report' else '' }}">گزارش روزانه</a>
+      <a href="{{ url_for('monthly_report') }}" class="{{ 'active' if active_page == 'monthly_report' else '' }}">گزارش ماهیانه</a>
+    </div>
+  </div>
+
+  <a href="{{ url_for('users.manage_users') }}" class="{{ 'active' if active_page == 'manage_users' else '' }}">مدیریت کاربران</a>
+  <a href="{{ url_for('equipments.manage_equipments') }}" class="{{ 'active' if active_page == 'manage_equipments' else '' }}">مدیریت تجهیزات</a>
+  <a href="{{ url_for('reports') }}" class="{{ 'active' if active_page == 'reports' else '' }}">گزارشات</a>
+  <a href="{{ url_for('logout') }}">خروج</a>
+</nav>
+
+
+  <!-- محتوای اصلی -->
+  <main class="content {{ active_page }}">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    document.querySelectorAll('.menu-item-with-submenu').forEach(item => {
+      item.querySelector('a').addEventListener('click', () => {
+        const submenu = item.querySelector('.submenu');
+        submenu.classList.toggle('open');
+      });
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

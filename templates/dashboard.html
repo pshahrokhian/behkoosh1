@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}داشبورد{% endblock %}
+
+{% block content %}
+<h2>خوش آمدید، {{ username }}</h2>
+<div class="card-grid">
+    <div class="card">
+        <div class="icon"><i class="fas fa-cogs"></i></div>
+        <div class="title">تعداد تجهیزات فعال</div>
+        <div class="number">{{ stats.active_machines }}</div>
+    </div>
+    <div class="card">
+        <div class="icon"><i class="fas fa-bolt"></i></div>
+        <div class="title">مصرف برق امروز</div>
+        <div class="number">{{ stats.electricity_today }}</div>
+    </div>
+    <div class="card">
+        <div class="icon"><i class="fas fa-clock"></i></div>
+        <div class="title">ساعت کارکرد</div>
+        <div class="number">{{ stats.total_hours }}</div>
+    </div>
+    <div class="card">
+        <div class="icon"><i class="fas fa-tint"></i></div>
+        <div class="title">مصرف آب امروز</div>
+        <div class="number">{{ stats.water_today }}</div>
+    </div>
+</div>
+{% endblock %}

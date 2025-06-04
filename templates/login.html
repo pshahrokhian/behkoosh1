@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ورود | سیستم</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+	<div id="bg1" class="background-container"></div>
+	<div id="bg2" class="background-container hide"></div>
+   
+  <div class="wrapper">
+  
+  
+      <!-- اینجا قبل از فرم پیام‌های فلش رو اضافه کن -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  
+    <form method="POST" action="{{ url_for('login') }}">
+      <h2>ورود</h2>
+      <div class="input-field">
+        <input type="text" name="username" id="username" required autocomplete="username">
+        <label for="username">نام کاربری</label>
+      </div>
+      <div class="input-field">
+        <input type="password" name="password" id="password" required autocomplete="current-password">
+        <label for="password">رمز عبور</label>
+      </div>
+      <div class="forget">
+        <label for="remember">
+          <input type="checkbox" name="remember" id="remember">
+          <p>مرا به خاطر بسپار</p>
+        </label>
+        <a href="#">رمز را فراموش کرده‌اید؟</a>
+      </div>
+      <button type="submit">ورود</button>
+      <div class="register">
+        <p>حساب کاربری ندارید؟ <a href="#">ثبت‌نام</a></p>
+      </div>
+    </form>
+  </div>
+  
+  <script src="{{ url_for('static', filename='js/background-slide.js') }}"></script>
+
+
+</body> 
+</html>
